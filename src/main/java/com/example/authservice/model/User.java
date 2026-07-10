@@ -16,24 +16,34 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Setter
     @Column(nullable = false, unique = true)
     private String username;
 
+    @Setter
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Setter
     @Column(nullable = false)
     private boolean enabled = true;
 
@@ -46,9 +56,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
-    protected User() {
-    }
-
     public User(String email, String username, String passwordHash) {
         this.email = email;
         this.username = username;
@@ -60,50 +67,6 @@ public class User {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
     }
 
     public void addRole(Role role) {

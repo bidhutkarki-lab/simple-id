@@ -1,5 +1,6 @@
 package com.example.authservice.service;
 
+import com.example.authservice.config.JwtProperties;
 import com.example.authservice.dto.LoginRequest;
 import com.example.authservice.dto.RefreshRequest;
 import com.example.authservice.dto.RegisterRequest;
@@ -14,30 +15,20 @@ import com.example.authservice.repository.UserRepository;
 import com.example.authservice.security.JwtService;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final com.example.authservice.config.JwtProperties jwtProperties;
-
-    public AuthService(UserRepository userRepository,
-                       RefreshTokenRepository refreshTokenRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtService jwtService,
-                       com.example.authservice.config.JwtProperties jwtProperties) {
-        this.userRepository = userRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.jwtProperties = jwtProperties;
-    }
+    private final JwtProperties jwtProperties;
 
     @Transactional
     public UserResponse register(RegisterRequest request) {

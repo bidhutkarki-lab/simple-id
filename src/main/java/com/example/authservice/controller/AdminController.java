@@ -6,19 +6,17 @@ import com.example.authservice.model.Role;
 import com.example.authservice.repository.UserRepository;
 import com.example.authservice.security.AuthPrincipal;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin")
+@RequiredArgsConstructor
 public class AdminController {
 
     private final UserRepository userRepository;
-
-    public AdminController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @GetMapping("/users")
     public List<UserResponse> listUsers(AuthPrincipal principal) {

@@ -8,9 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "refresh_tokens")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
     @Id
@@ -26,14 +32,12 @@ public class RefreshToken {
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
+    @Setter
     @Column(nullable = false)
     private boolean revoked = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    protected RefreshToken() {
-    }
 
     public RefreshToken(String token, Long userId, Instant expiresAt) {
         this.token = token;
@@ -50,33 +54,5 @@ public class RefreshToken {
 
     public boolean isActive() {
         return !revoked && expiresAt.isAfter(Instant.now());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public Instant getExpiresAt() {
-        return expiresAt;
-    }
-
-    public boolean isRevoked() {
-        return revoked;
-    }
-
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 }

@@ -5,19 +5,17 @@ import com.example.authservice.exception.ApiException;
 import com.example.authservice.model.User;
 import com.example.authservice.repository.UserRepository;
 import com.example.authservice.security.AuthPrincipal;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
-
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @GetMapping("/me")
     public UserResponse me(AuthPrincipal principal) {
