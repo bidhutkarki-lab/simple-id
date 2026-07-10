@@ -29,6 +29,17 @@ spring:
 server:
   port: ${SERVER_PORT:8081}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
 app:
   jwt:
     # Base64-encoded HMAC secret. Override in real environments via APP_JWT_SECRET.

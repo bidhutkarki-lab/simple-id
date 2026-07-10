@@ -43,6 +43,7 @@ mvn test
 | POST   | `/api/auth/refresh`  | public          | Rotates refresh token, new pair      |
 | GET    | `/api/users/me`      | Bearer token    | Current user profile                 |
 | GET    | `/api/admin/users`   | Bearer + ADMIN  | List all users                       |
+| GET    | `/actuator/health`   | public          | Liveness/readiness health check      |
 
 ### Example
 

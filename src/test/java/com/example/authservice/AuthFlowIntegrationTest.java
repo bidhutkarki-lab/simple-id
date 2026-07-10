@@ -36,6 +36,13 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
+    void healthEndpointReportsUp() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("UP")));
+    }
+
+    @Test
     void registerLoginAndAccessProtectedEndpoint() throws Exception {
         String register = """
                 {"email":"alice@example.com","username":"alice","password":"password123"}
