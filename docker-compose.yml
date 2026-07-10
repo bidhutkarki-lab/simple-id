@@ -1,0 +1,18 @@
+services:
+  auth-service:
+    build: .
+    container_name: auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      # H2 file DB stored on a mounted volume so data survives container restarts
+      DB_URL: "jdbc:h2:file:/data/authdb;DB_CLOSE_DELAY=-1"
+      DB_USERNAME: sa
+      DB_PASSWORD: ""
+      APP_JWT_SECRET: "c2ltcGxlLWlkLWRldi1zZWNyZXQtY2hhbmdlLW1lLXBsZWFzZS0zMi1ieXRlcy1taW4="
+      H2_CONSOLE_ENABLED: "true"
+    volumes:
+      - auth-data:/data
+
+volumes:
+  auth-data:
