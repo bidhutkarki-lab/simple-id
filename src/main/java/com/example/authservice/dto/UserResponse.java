@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 public record UserResponse(
         Long id,
         String email,
-        String username,
         Set<String> roles,
         Instant createdAt) {
 
@@ -17,6 +16,6 @@ public record UserResponse(
         Set<String> roleNames = user.getRoles().stream()
                 .map(Role::name)
                 .collect(Collectors.toSet());
-        return new UserResponse(user.getId(), user.getEmail(), user.getUsername(), roleNames, user.getCreatedAt());
+        return new UserResponse(user.getId(), user.getEmail(), roleNames, user.getCreatedAt());
     }
 }

@@ -51,12 +51,12 @@ mvn test
 # Register
 curl -X POST localhost:8080/api/auth/register \
   -H 'Content-Type: application/json' \
-  -d '{"email":"alice@example.com","username":"alice","password":"password123"}'
+  -d '{"email":"alice@example.com","password":"password123"}'
 
 # Login
 curl -X POST localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"password123"}'
+  -d '{"email":"alice@example.com","password":"password123"}'
 
 # Access protected endpoint
 curl localhost:8080/api/users/me -H "Authorization: Bearer <accessToken>"

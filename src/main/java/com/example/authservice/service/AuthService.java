@@ -32,14 +32,11 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.username())) {
-            throw ApiException.conflict("Username is already taken");
-        }
         if (userRepository.existsByEmail(request.email())) {
             throw ApiException.conflict("Email is already registered");
         }
 
-        User user = new User(request.email(), request.username(), passwordEncoder.encode(request.password()));
+        User user = new User(request.email(), passwordEncoder.encode(request.password()));
         user.addRole(Role.USER);
         userRepository.save(user);
         return UserResponse.from(user);
@@ -47,7 +44,7 @@ public class AuthService {
 
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.username())
+        User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> ApiException.unauthorized("Invalid credentials"));
 
         if (!user.isEnabled() || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {

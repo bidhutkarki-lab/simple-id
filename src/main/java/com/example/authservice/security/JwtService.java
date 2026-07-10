@@ -37,7 +37,7 @@ public class JwtService {
         return Jwts.builder()
                 .issuer(properties.getIssuer())
                 .subject(String.valueOf(user.getId()))
-                .claim("username", user.getUsername())
+                .claim("email", user.getEmail())
                 .claim(ROLES_CLAIM, roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
@@ -59,9 +59,9 @@ public class JwtService {
                 .getPayload();
 
         Long userId = Long.valueOf(claims.getSubject());
-        String username = claims.get("username", String.class);
+        String email = claims.get("email", String.class);
         Set<Role> roles = parseRoles(claims);
-        return new AuthPrincipal(userId, username, roles);
+        return new AuthPrincipal(userId, email, roles);
     }
 
     public long accessTokenTtlSeconds() {

@@ -36,10 +36,6 @@ public class User {
     private String email;
 
     @Setter
-    @Column(nullable = false, unique = true)
-    private String username;
-
-    @Setter
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -56,9 +52,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
-    public User(String email, String username, String passwordHash) {
+    public User(String email, String passwordHash) {
         this.email = email;
-        this.username = username;
         this.passwordHash = passwordHash;
     }
 
