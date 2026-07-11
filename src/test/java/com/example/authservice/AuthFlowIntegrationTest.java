@@ -47,12 +47,16 @@ class AuthFlowIntegrationTest {
         String register = """
                 {"email":"alice@example.com","password":"password123"}
                 """;
-        mockMvc.perform(post("/api/auth/register")
+        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(register))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email", is("alice@example.com")))
-                .andExpect(jsonPath("$.roles[0]", is("USER")));
+                .andExpect(jsonPath("$.roles[0]", is("USER")))
+                .andReturn();
+
+        long userId = objectMapper.readTree(registerResult.getResponse().getContentAsString())
+                .get("id").asLong();
 
         String login = """
                 {"email":"alice@example.com","password":"password123"}
@@ -66,11 +70,11 @@ class AuthFlowIntegrationTest {
                 .andReturn();
 
         JsonNode tokens = objectMapper.readTree(loginResult.getResponse().getContentAsString());
-        String accessToken = tokens.get("accessToken").asText();
         String refreshToken = tokens.get("refreshToken").asText();
 
+        // Identity is forwarded by the middleware via the X-User-Id header.
         mockMvc.perform(get("/api/users/me")
-                        .header("Authorization", "Bearer " + accessToken))
+                        .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("alice@example.com")));
 
@@ -84,7 +88,7 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void protectedEndpointRejectsMissingToken() throws Exception {
+    void protectedEndpointRejectsMissingIdentity() throws Exception {
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isUnauthorized());
     }
@@ -94,23 +98,17 @@ class AuthFlowIntegrationTest {
         String register = """
                 {"email":"bob@example.com","password":"password123"}
                 """;
-        mockMvc.perform(post("/api/auth/register")
+        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(register))
-                .andExpect(status().isCreated());
-
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email":"bob@example.com","password":"password123"}
-                                """))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
-        String accessToken = objectMapper.readTree(loginResult.getResponse().getContentAsString())
-                .get("accessToken").asText();
+
+        long userId = objectMapper.readTree(registerResult.getResponse().getContentAsString())
+                .get("id").asLong();
 
         mockMvc.perform(get("/api/admin/users")
-                        .header("Authorization", "Bearer " + accessToken))
+                        .header("X-User-Id", userId))
                 .andExpect(status().isForbidden());
     }
 }

@@ -10,9 +10,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.jwt")
 public class JwtProperties {
 
-    /** Base64-encoded HMAC secret (at least 32 bytes when decoded). */
-    private String secret;
-
     private String issuer = "simple-id";
 
     private Duration accessTokenTtl = Duration.ofMinutes(15);

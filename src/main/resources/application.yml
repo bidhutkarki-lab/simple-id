@@ -42,8 +42,6 @@ management:
 
 app:
   jwt:
-    # Base64-encoded HMAC secret. Override in real environments via APP_JWT_SECRET.
-    secret: ${APP_JWT_SECRET:c2ltcGxlLWlkLWRldi1zZWNyZXQtY2hhbmdlLW1lLXBsZWFzZS0zMi1ieXRlcy1taW4=}
     issuer: simple-id
     access-token-ttl: ${APP_JWT_ACCESS_TTL:PT15M}
     refresh-token-ttl: ${APP_JWT_REFRESH_TTL:P7D}

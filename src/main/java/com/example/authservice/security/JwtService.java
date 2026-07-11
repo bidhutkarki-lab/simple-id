@@ -3,17 +3,10 @@ package com.example.authservice.security;
 import com.example.authservice.config.JwtProperties;
 import com.example.authservice.model.Role;
 import com.example.authservice.model.User;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,11 +15,11 @@ public class JwtService {
     private static final String ROLES_CLAIM = "roles";
 
     private final JwtProperties properties;
-    private final SecretKey signingKey;
+    private final RsaKeyProvider keyProvider;
 
-    public JwtService(JwtProperties properties) {
+    public JwtService(JwtProperties properties, RsaKeyProvider keyProvider) {
         this.properties = properties;
-        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.getSecret()));
+        this.keyProvider = keyProvider;
     }
 
     public String generateAccessToken(User user) {
@@ -35,48 +28,18 @@ public class JwtService {
         List<String> roles = user.getRoles().stream().map(Role::name).toList();
 
         return Jwts.builder()
+                .header().keyId(keyProvider.getKeyId()).and()
                 .issuer(properties.getIssuer())
                 .subject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
                 .claim(ROLES_CLAIM, roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
-                .signWith(signingKey)
+                .signWith(keyProvider.getPrivateKey(), Jwts.SIG.RS256)
                 .compact();
-    }
-
-    /**
-     * Validates the token signature, issuer and expiry, returning the principal.
-     *
-     * @throws JwtException if the token is invalid or expired
-     */
-    public AuthPrincipal parse(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(signingKey)
-                .requireIssuer(properties.getIssuer())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        Long userId = Long.valueOf(claims.getSubject());
-        String email = claims.get("email", String.class);
-        Set<Role> roles = parseRoles(claims);
-        return new AuthPrincipal(userId, email, roles);
     }
 
     public long accessTokenTtlSeconds() {
         return properties.getAccessTokenTtl().toSeconds();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Set<Role> parseRoles(Claims claims) {
-        Object raw = claims.get(ROLES_CLAIM);
-        if (raw instanceof List<?> list) {
-            return list.stream()
-                    .map(Object::toString)
-                    .map(Role::valueOf)
-                    .collect(Collectors.toSet());
-        }
-        return Set.of();
     }
 }
