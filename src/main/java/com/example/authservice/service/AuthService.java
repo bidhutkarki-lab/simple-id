@@ -16,11 +16,13 @@ import com.example.authservice.security.JwtService;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -33,42 +35,58 @@ public class AuthService {
     @Transactional
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
+            log.warn("Registration rejected: email already registered");
             throw ApiException.conflict("Email is already registered");
         }
 
         User user = new User(request.email(), passwordEncoder.encode(request.password()));
         user.addRole(Role.USER);
         userRepository.save(user);
+        log.info("Registered new user userId={}", user.getId());
         return UserResponse.from(user);
     }
 
     @Transactional
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> ApiException.unauthorized("Invalid credentials"));
+                .orElseThrow(() -> {
+                    log.warn("Login failed: no account for the supplied email");
+                    return ApiException.unauthorized("Invalid credentials");
+                });
 
         if (!user.isEnabled() || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            log.warn("Login failed for userId={}: {}", user.getId(),
+                    user.isEnabled() ? "bad password" : "account disabled");
             throw ApiException.unauthorized("Invalid credentials");
         }
 
+        log.info("Login succeeded for userId={}", user.getId());
         return issueTokens(user);
     }
 
     @Transactional
     public TokenResponse refresh(RefreshRequest request) {
         RefreshToken stored = refreshTokenRepository.findByToken(request.refreshToken())
-                .orElseThrow(() -> ApiException.unauthorized("Invalid refresh token"));
+                .orElseThrow(() -> {
+                    log.warn("Refresh failed: token not found");
+                    return ApiException.unauthorized("Invalid refresh token");
+                });
 
         if (!stored.isActive()) {
+            log.warn("Refresh failed for userId={}: token expired or revoked", stored.getUserId());
             throw ApiException.unauthorized("Refresh token expired or revoked");
         }
 
         User user = userRepository.findById(stored.getUserId())
-                .orElseThrow(() -> ApiException.unauthorized("Invalid refresh token"));
+                .orElseThrow(() -> {
+                    log.warn("Refresh failed: userId={} not found for a valid token", stored.getUserId());
+                    return ApiException.unauthorized("Invalid refresh token");
+                });
 
         // Rotate: revoke the presented token, then issue a fresh pair.
         stored.setRevoked(true);
         refreshTokenRepository.save(stored);
+        log.info("Refresh token rotated for userId={}", user.getId());
         return issueTokens(user);
     }
 
