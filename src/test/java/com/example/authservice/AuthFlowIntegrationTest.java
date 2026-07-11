@@ -31,6 +31,9 @@ class AuthFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // NOTE: server.servlet.context-path (/auth) is applied by the servlet container,
+    // which MockMvc bypasses, so these tests use application-relative paths.
+
     @Test
     void contextLoads() {
     }
@@ -47,7 +50,7 @@ class AuthFlowIntegrationTest {
         String register = """
                 {"email":"alice@example.com","password":"password123"}
                 """;
-        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
+        MvcResult registerResult = mockMvc.perform(post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(register))
                 .andExpect(status().isCreated())
@@ -61,7 +64,7 @@ class AuthFlowIntegrationTest {
         String login = """
                 {"email":"alice@example.com","password":"password123"}
                 """;
-        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(login))
                 .andExpect(status().isOk())
@@ -73,14 +76,14 @@ class AuthFlowIntegrationTest {
         String refreshToken = tokens.get("refreshToken").asText();
 
         // Identity is forwarded by the middleware via the X-User-Id header.
-        mockMvc.perform(get("/api/users/me")
+        mockMvc.perform(get("/me")
                         .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("alice@example.com")));
 
         String refresh = objectMapper.writeValueAsString(
                 java.util.Map.of("refreshToken", refreshToken));
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(refresh))
                 .andExpect(status().isOk())
@@ -89,7 +92,7 @@ class AuthFlowIntegrationTest {
 
     @Test
     void protectedEndpointRejectsMissingIdentity() throws Exception {
-        mockMvc.perform(get("/api/users/me"))
+        mockMvc.perform(get("/me"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -98,7 +101,7 @@ class AuthFlowIntegrationTest {
         String register = """
                 {"email":"bob@example.com","password":"password123"}
                 """;
-        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
+        MvcResult registerResult = mockMvc.perform(post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(register))
                 .andExpect(status().isCreated())
@@ -107,7 +110,7 @@ class AuthFlowIntegrationTest {
         long userId = objectMapper.readTree(registerResult.getResponse().getContentAsString())
                 .get("id").asLong();
 
-        mockMvc.perform(get("/api/admin/users")
+        mockMvc.perform(get("/admin/users")
                         .header("X-User-Id", userId))
                 .andExpect(status().isForbidden());
     }
