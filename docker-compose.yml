@@ -3,7 +3,7 @@ services:
     build: .
     container_name: auth-service
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
       # H2 file DB stored on a mounted volume so data survives container restarts
       DB_URL: "jdbc:h2:file:/data/authdb;DB_CLOSE_DELAY=-1"
